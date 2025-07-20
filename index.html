@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino Service</title>
+    <link rel="stylesheet" href="globals.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-background: #1a1a1a;
+            --color-foreground: #f5f5f5;
+            --color-card: #262626;
+            --color-card-foreground: #f5f5f5;
+            --color-primary: #f5f5f5;
+            --color-primary-foreground: #1a1a1a;
+            --color-secondary: #404040;
+            --color-secondary-foreground: #f5f5f5;
+            --color-muted: #404040;
+            --color-muted-foreground: #c6c6c6;
+            --color-accent: #404040;
+            --color-accent-foreground: #f5f5f5;
+            --color-border: #404040;
+            --color-green: #22c55e;
+            --color-green-foreground: #166534;
+            --color-yellow: #eab308;
+            --color-blue: #3b82f6;
+            --radius: 0.5rem;
+        }
+
+        body {
+            font-family: 'AbarMid', 'AbarMid-Regular', 'AbarHigh', 'AbarLow', 'Segoe UI', Tahoma, Arial, sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-foreground);
+            font-size: 14px;
+            line-height: 1.5;
+            direction: rtl;
+        }
+
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--color-card);
+            border-bottom: 1px solid var(--color-border);
+            padding: 1rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background-color: var(--color-primary);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--color-primary-foreground);
+        }
+
+        .logo-text {
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: var(--color-muted);
+            border-radius: var(--radius);
+            padding: 0.5rem 0.75rem;
+            gap: 0.5rem;
+            min-width: 16rem;
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            outline: none;
+            flex: 1;
+            color: var(--color-foreground);
+            font-size: 0.875rem;
+        }
+
+        .search-box input::placeholder {
+            color: var(--color-muted-foreground);
+        }
+
+        .search-kbd {
+            background-color: var(--color-background);
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            color: var(--color-muted-foreground);
+        }
+
+        .icon-button {
+            padding: 0.5rem;
+            border: none;
+            background: transparent;
+            border-radius: var(--radius);
+            cursor: pointer;
+            color: var(--color-foreground);
+            transition: background-color 0.2s;
+        }
+
+        .icon-button:hover {
+            background-color: var(--color-accent);
+        }
+
+        .menu-toggle {
+            display: none;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            flex: 1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 16rem;
+            background-color: var(--color-card);
+            border-left: 1px solid var(--color-border);
+            height: calc(100vh - 73px);
+            overflow-y: auto;
+            position: sticky;
+            top: 73px;
+        }
+
+        .sidebar-nav {
+            padding: 1rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            color: var(--color-foreground);
+            justify-content: space-between;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link.active {
+            background-color: var(--color-accent);
+            color: var(--color-accent-foreground);
+        }
+
+        .nav-link .nav-title {
+            flex: 1;
+        }
+
+        .nav-children {
+            padding-right: 1rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .nav-children.expanded {
+            display: block;
+        }
+
+        .nav-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .chevron {
+            width: 16px;
+            height: 16px;
+            transform: rotate(0deg);
+            transition: transform 0.2s;
+        }
+
+        .chevron.expanded {
+            transform: rotate(90deg);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .content-wrapper {
+            max-width: 64rem;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--color-muted-foreground);
+            margin-bottom: 1.5rem;
+            flex-direction: row-reverse;
+        }
+
+        .breadcrumb-separator {
+            width: 16px;
+            height: 16px;
+        }
+
+        .breadcrumb-current {
+            color: var(--color-foreground);
+        }
+
+        /* Content Styles */
+        .content {
+            color: var(--color-foreground);
+        }
+
+        .content h1 {
+            font-size: 2.25rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .content h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            margin-top: 2rem;
+        }
+
+        .content h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .content h4 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .content p {
+            margin-bottom: 1rem;
+            color: var(--color-muted-foreground);
+        }
+
+        .content ul {
+            margin-bottom: 1rem;
+            padding-right: 1.5rem;
+        }
+
+        .content li {
+            margin-bottom: 1.7rem;
+            color: var(--color-muted-foreground);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--color-muted-foreground);
+            max-width: 32rem;
+            margin: 0 auto 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: var(--color-primary-foreground);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            border: 1px solid var(--color-border);
+            background-color: transparent;
+            color: var(--color-foreground);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--color-accent);
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        /* Cards */
+        .card {
+            padding: 1.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            background-color: var(--color-card);
+            transition: all 0.2s;
+        }
+
+        .card:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 1rem;
+        }
+
+        .card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        .card p {
+            color: var(--color-muted-foreground);
+            font-size: 0.875rem;
+            margin-bottom: 0;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background-color: var(--color-muted);
+            padding: 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--color-border);
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .code-block pre {
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: var(--color-foreground);
+            white-space: pre-wrap;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            background: var(--color-accent);
+            border: none;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            color: var(--color-foreground);
+        }
+
+        /* Alert boxes */
+        .alert {
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin: 1rem 0;
+            border: 1px solid;
+        }
+
+        .alert-success {
+            background-color: rgba(34, 197, 94, 0.1);
+            border-color: var(--color-green);
+            color: var(--color-green);
+        }
+
+        .alert-info {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-color: var(--color-blue);
+            color: var(--color-blue);
+        }
+
+        .alert h3 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        .alert p {
+            font-size: 0.875rem;
+            margin-bottom: 0;
+        }
+
+        /* Component showcase */
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .component-card {
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            background-color: var(--color-card);
+        }
+
+        .component-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .component-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-stable {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: var(--color-green);
+        }
+
+        .status-beta {
+            background-color: rgba(234, 179, 8, 0.2);
+            color: var(--color-yellow);
+        }
+
+        .component-category {
+            background-color: var(--color-muted);
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+        }
+
+        .component-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .component-actions .btn {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        /* Filter buttons */
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--color-border);
+            background-color: transparent;
+            color: var(--color-foreground);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background-color: var(--color-primary);
+            color: var(--color-primary-foreground);
+            border-color: var(--color-primary);
+        }
+
+        .filter-btn:hover {
+            background-color: var(--color-accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-box {
+                display: none;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 73px;
+                right: -16rem;
+                z-index: 40;
+                transition: right 0.3s;
+                height: calc(100vh - 73px);
+            }
+
+            .sidebar.open {
+                right: 0;
+            }
+
+            .main-content {
+                width: 100%;
+            }
+
+            .grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .content-wrapper {
+                padding: 1rem;
+            }
+        }
+
+        /* Hide scrollbar but keep functionality */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--color-border);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--color-muted-foreground);
+        }
+
+        /* Content sections spacing */
+        .content-section {
+            margin-bottom: 2rem;
+        }
+
+        .space-y-6>*+* {
+            margin-top: 1.5rem;
+        }
+
+        .space-y-4>*+* {
+            margin-top: 1rem;
+        }
+
+        .space-y-2>*+* {
+            margin-top: 0.5rem;
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none;
+        }
+
+        /* SVG Icons */
+        .icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon">د</div>
+                    <span class="logo-text">دینو سرویس</span>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <a href="https://t.me/Dino_Sales" class="btn btn-secondary" target="_blank" rel="noopener"
+                    class="btn btn-primary" style="margin-left: 1rem;">خرید سرویس</a>
+                <button class="icon-button menu-toggle" onclick="toggleSidebar()">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="search-box">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" placeholder="جست‌وجو در مستندات..." />
+                    <kbd class="search-kbd">⌘K</kbd>
+                </div>
+                <!-- <button class="icon-button">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                        </path>
+                    </svg>
+                </button> -->
+                <button class="icon-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-telegram" viewBox="0 0 16 16">
+                        <path
+                            d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.287 5.906q-1.168.486-4.666 2.01-.567.225-.595.442c-.03.243.275.339.69.47l.175.055c.408.133.958.288 1.243.294q.39.01.868-.32 3.269-2.206 3.374-2.23c.05-.012.12-.026.166.016s.042.12.037.141c-.03.129-1.227 1.241-1.846 1.817-.193.18-.33.307-.358.336a8 8 0 0 1-.188.186c-.38.366-.664.64.015 1.088.327.216.589.393.85.571.284.194.568.387.936.629q.14.092.27.187c.331.236.63.448.997.414.214-.02.435-.22.547-.82.265-1.417.786-4.486.906-5.751a1.4 1.4 0 0 0-.013-.315.34.34 0 0 0-.114-.217.53.53 0 0 0-.31-.093c-.3.005-.763.166-2.984 1.09" />
+                    </svg>
+                </button>
+                <button class="icon-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-discord" viewBox="0 0 16 16">
+                        <path
+                            d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <nav class="sidebar-nav">
+                    <!-- Home -->
+                    <div class="nav-item">
+                        <a href="#" class="nav-link active" onclick="navigateTo('home', this)">
+                            <span class="nav-title">خانه</span>
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+
+                    <!-- Getting Started -->
+                    <div class="nav-item">
+                        <div class="nav-link" onclick="toggleNavSection('getting-started')">
+                            <span class="nav-title">آموزش نصب</span>
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                                </path>
+                            </svg>
+                            <svg class="chevron expanded" id="chevron-getting-started" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <polyline points="9,18 15,12 9,6"></polyline>
+                            </svg>
+                        </div>
+                        <div class="nav-children expanded" id="children-getting-started">
+                            <div class="nav-item">
+                                <a href="#" class="nav-link" onclick="navigateTo('installation', this)">
+                                    <span class="nav-title">نصب V2rayN</span>
+                                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10,9 9,9 8,9"></polyline>
+                                    </svg>
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="#" class="nav-link" onclick="navigateTo('quick-start', this)">
+                                    <span class="nav-title">نصب Proxifier</span>
+                                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10,9 9,9 8,9"></polyline>
+                                    </svg>
+                                </a>
+                            </div>
+                            <!-- <div class="nav-item">
+                                <a href="#" class="nav-link" onclick="navigateTo('configuration', this)">
+                                    <span class="nav-title">پیکربندی</span>
+                                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10,9 9,9 8,9"></polyline>
+                                    </svg>
+                                </a>
+                            </div> -->
+                        </div>
+                    </div>
+
+                    <!-- Guides -->
+                    <div class="nav-item">
+                        <div class="nav-link" onclick="toggleNavSection('guides')">
+                            <span class="nav-title">سرویس ها</span>
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                                </path>
+                            </svg>
+                            <svg class="chevron expanded" id="chevron-guides" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <polyline points="9,18 15,12 9,6"></polyline>
+                            </svg>
+                        </div>
+                        <div class="nav-children expanded" id="children-guides">
+                            <div class="nav-item">
+                                <a href="#" class="nav-link" onclick="navigateTo('components', this)">
+                                    <span class="nav-title"> پایه</span>
+                                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10,9 9,9 8,9"></polyline>
+                                    </svg>
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="#" class="nav-link" onclick="navigateTo('fivem', this)">
+                                    <span class="nav-title">فایوم</span>
+                                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10,9 9,9 8,9"></polyline>
+                                    </svg>
+                                </a>
+                            </div>
+                            <!-- <div class="nav-item">
+                                <a href="#" class="nav-link" onclick="navigateTo('deployment', this)">
+                                    <span class="nav-title">استقرار</span>
+                                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10,9 9,9 8,9"></polyline>
+                                    </svg>
+                                </a>
+                            </div> -->
+                        </div>
+                    </div>
+
+                    <!-- API Reference -->
+                    <!-- <div class="nav-item">
+                        <div class="nav-link" onclick="toggleNavSection('api-reference')">
+                            <span class="nav-title">مرجع API</span>
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                                </path>
+                            </svg>
+                            <svg class="chevron expanded" id="chevron-api-reference" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <polyline points="9,18 15,12 9,6"></polyline>
+                            </svg>
+                        </div>
+                        <div class="nav-children expanded" id="children-api-reference">
+                            <div class="nav-item">
+                                <a href="#" class="nav-link" onclick="navigateTo('hooks', this)">
+                                    <span class="nav-title">هوک‌ها</span>
+                                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10,9 9,9 8,9"></polyline>
+                                    </svg>
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="#" class="nav-link" onclick="navigateTo('utilities', this)">
+                                    <span class="nav-title">ابزارها</span>
+                                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10,9 9,9 8,9"></polyline>
+                                    </svg>
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="#" class="nav-link" onclick="navigateTo('types', this)">
+                                    <span class="nav-title">انواع</span>
+                                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10,9 9,9 8,9"></polyline>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div> -->
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="content-wrapper">
+                    <!-- Breadcrumb -->
+                    <nav class="breadcrumb" id="breadcrumb">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                        </svg>
+                        <span class="breadcrumb-current">خانه</span>
+                    </nav>
+
+                    <!-- Content Area -->
+                    <div class="content" id="content">
+                        <!-- Home Page Content (Default) -->
+                        <div id="page-home">
+                            <div class="hero">
+                                <h1>Dino Service</h1>
+                                <p>راهنمای جامعی که به شما کمک می کند از ابزار های سرویس دینو اسفاده کنید.</p>
+                                <div class="hero-buttons">
+                                    <a href="#" class="btn btn-primary" onclick="navigateTo('installation')">
+                                        آموزش نصب
+                                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <polyline points="9,18 15,12 9,6"></polyline>
+                                        </svg>
+                                    </a>
+                                    <a href="https://t.me/Dino_Sales" class="btn btn-secondary" target="_blank"
+                                        rel="noopener">خرید سرویس</a>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3">
+                                <div class="card">
+                                    <svg class="card-icon" style="color: #eab308;" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"></polygon>
+                                    </svg>
+                                    <h3>سریع و کارآمد</h3>
+                                    <p>بالا ترین سرعت اینترنت آزاد را با پلن های پایه تجربه کنید .</p>
+                                </div>
+
+                                <div class="card">
+                                    <svg class="card-icon" style="color: #22c55e;" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                    </svg>
+                                    <h3>ایمن به صورت پیش‌فرض</h3>
+                                    <p>بهترین شیوه‌های امنیتی از پیش تعبیه شده و برنامه‌هایتان را در برابر
+                                        آسیب‌پذیری‌های رایج محافظت می‌کند.</p>
+                                </div>
+
+                                <div class="card">
+                                    <svg class="card-icon" style="color: #3b82f6;" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                                    </svg>
+                                    <h3>قابلیت سفارشی‌سازی </h3>
+                                    <p>سفارشی سازی کانفیگ نسبت به اینرنت شما . بیش از 7 پروتکل مختلف .</p>
+                                </div>
+                            </div>
+
+                            <div class="content-section">
+                                <h2>پیوندهای سریع</h2>
+                                <div class="grid grid-cols-2">
+                                    <div class="card" onclick="navigateTo('installation')">
+                                        <h4>راهنمای نصب</h4>
+                                        <p>نحوه نصب و راه‌اندازی فریمورک در پروژه خود را بیاموزید.</p>
+                                    </div>
+                                    <div class="card" onclick="navigateTo('components')">
+                                        <h4>سرویس ها</h4>
+                                        <p>کتابخانه جامع سرویس های قابل استفاده مجدد ما را کشف کنید.</p>
+                                    </div>
+                                    <div class="card" onclick="navigateTo('hooks')">
+                                        <h4>مرجع API</h4>
+                                        <p>مستندات کامل API با نمونه‌ها و الگوهای استفاده.</p>
+                                    </div>
+                                    <div class="card" onclick="navigateTo('deployment')">
+                                        <h4>استقرار</h4>
+                                        <p>راهنمای گام به گام برای استقرار برنامه در محیط تولید.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Installation Page -->
+                        <div id="page-installation" class="hidden">
+                            <!-- <h1>نصب</h1>
+                            <p>با نصب فریمورک در پروژه خود شروع کنید. روشی را انتخاب کنید که برای تنظیمات شما بهتر کار
+                                می‌کند.</p>
+                                <hr class="khatt" style="border: none; border-top: 1px dashed var(--color-border); margin: 2rem 0;" />
+                        
+                            <div class="content-section">
+                                <h2>مدیر بسته‌ها</h2>
+                                <p>با استفاده از مدیر بسته مورد علاقه خود نصب کنید:</p>
+
+                                <h4>npm</h4>
+                                <div class="code-block">
+                                    <button class="copy-button"
+                                        onclick="copyToClipboard('npm install @framework/core')">📋</button>
+                                    <pre><code>npm install @framework/core</code></pre>
+                                </div>
+
+                                <h4>yarn</h4>
+                                <div class="code-block">
+                                    <button class="copy-button"
+                                        onclick="copyToClipboard('yarn add @framework/core')">📋</button>
+                                    <pre><code>yarn add @framework/core</code></pre>
+                                </div>
+
+                                <h4>pnpm</h4>
+                                <div class="code-block">
+                                    <button class="copy-button"
+                                        onclick="copyToClipboard('pnpm add @framework/core')">📋</button>
+                                    <pre><code>pnpm add @framework/core</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="content-section">
+                                <h2>CDN</h2>
+                                <p>برای نمونه‌سازی سریع، می‌توانید فریمورک را مستقیماً از CDN اضافه کنید:</p>
+                                <div class="code-block">
+                                    <pre><code>&lt;script src="https://cdn.example.com/framework@latest/core.min.js"&gt;&lt;/script&gt;
+&lt;link rel="stylesheet" href="https://cdn.example.com/framework@latest/styles.css"&gt;</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <h3>💡 نکته حرفه‌ای</h3>
+                                <p>ما استفاده از مدیر بسته را برای برنامه‌های تولیدی توصیه می‌کنیم زیرا مدیریت وابستگی و
+                                    بهینه‌سازی بسته بهتری ارائه می‌دهد.</p>
+                            </div>
+
+                            <div class="content-section">
+                                <h2>نیازمندی‌ها</h2>
+                                <ul>
+                                    <li>Node.js نسخه 16 یا بالاتر</li>
+                                    <li>React نسخه 18 یا بالاتر</li>
+                                    <li>TypeScript نسخه 4.5+ (پیشنهادی)</li>
+                                </ul>
+                            </div> -->
+                            <div class="content-section">
+                                <h2>📡 آموزش نصب V2rayN</h2>
+                                <h3>📱 Android:</h3>
+                                <ol>
+                                    <li>ابتدا برنامه را دانلود و نصب کنید. <a
+                                            href="https://github.com/2dust/v2rayNG/releases" target="_blank">دانلود از
+                                            گیت هاب</a></li>
+                                    <li>سپس با زدن روی دکمه + در منوی بالای برنامه منو را باز کنید.</li>
+                                    <li>کانفیگی که توسط ربات یا پشتیبانی دریافت کرده‌اید را کپی کنید (خرید از طریق
+                                        <b>⁠t.me/dinoservice</b>)</li>
+                                    <li>Import Config From Clipboard را انتخاب کنید</li>
+                                </ol>
+                                <h3>🖥️ Windows & Mac</h3>
+                                <ol>
+                                    <li>ابتدا فایل را دانلود و استخراج کنید. <a
+                                            href="https://github.com/2dust/v2rayN/releases" target="_blank">دانلود برای
+                                            ویندوز از گیت هاب</a> | <a href="https://github.com/2dust/v2rayN/releases"
+                                            target="_blank">دانلود برای مک از گیت هاب</a></li>
+                                    <li>برنامه .NET را دانلود کنید و نصب کنید. <a
+                                            href="https://dotnet.microsoft.com/en-us/download/dotnet-framework"
+                                            target="_blank">دانلود .NET</a></li>
+                                    <li>پس از نصب .NET برنامه را در مسیری که استخراج کردید باز کنید.</li>
+                                    <li>کانفیگی که توسط ربات یا پشتیبانی دریافت کرده‌اید را کپی کنید (خرید از طریق
+                                        <b>⁠t.me/dinoservice</b>)</li>
+                                    <li>Servers را انتخاب کنید</li>
+                                    <li>Import share links from clipboard را انتخاب کنید</li>
+                                    <li>برای فعال‌سازی از منوی پایین گزینه system proxy را روی Set System Proxy قرار
+                                        دهید.</li>
+                                </ol>
+                                <div class="alert alert-info">
+                                    <h3>💡 نکته </h3>
+                                    <p>در صورتی که در فرآیند نصب به مشکل برخورد کردید میتوانید از طریق تیکت در دیسکورد
+                                        یا از طریق ارتباط با پشتیبانی در تلگرام به نشانی @Dino_Sales مراجعه کنید .</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Components Page -->
+                        <div id="page-components" class="hidden">
+
+                            <!-- <h1>سرویس ها</h1>
+                            <p>کتابخانه‌ای جامع از سرویس های رابط کاربری قابل استفاده مجدد که با در نظر گرفتن دسترسی
+                                و قابلیت سفارشی‌سازی ساخته شده‌اند.</p>
+
+                            <div class="filter-buttons">
+                                <button class="filter-btn active" onclick="filterComponents('همه')">همه</button>
+                                <button class="filter-btn" onclick="filterComponents('VPN')">VPN</button>
+                                <button class="filter-btn" onclick="filterComponents('فایوم')">فایوم</button>
+                            </div>
+
+                            <div class="component-grid" id="components-grid"> -->
+                                <!-- <div class="component-card" data-category="VPN">
+                                    <div class="component-header">
+                                        <div>
+                                            <h3>پلن پایه</h3>
+                                            <span class="component-status status-stable">پایدار</span>
+                                        </div>
+                                        <span class="component-category">VPN</span>
+                                    </div>
+                                    <ul style="list-style:none;padding:0;margin:0 0 1rem 0;text-align:center;">
+                                        <li>۳۵ گیگ</li>
+                                        <li>یک ماه</li>
+                                    </ul>
+                                    <div class="component-actions">
+                                        <button class="btn btn-secondary">۵۸ هزار تومان</button>
+                                    </div>
+                                </div>
+                                <div class="component-card" data-category="VPN">
+                                    <div class="component-header">
+                                        <div>
+                                            <h3>پلن پایه</h3>
+                                            <span class="component-status status-stable">پایدار</span>
+                                        </div>
+                                        <span class="component-category">VPN</span>
+                                    </div>
+                                    <ul style="list-style:none;padding:0;margin:0 0 1rem 0;text-align:center;">
+                                        <li>۳۵ گیگ</li>
+                                        <li>یک ماه</li>
+                                    </ul>
+                                    <div class="component-actions">
+                                        <button class="btn btn-secondary">۵۸ هزار تومان</button>
+                                    </div>
+                                </div>
+                                <div class="component-card" data-category="فایوم">
+                                    <div class="component-header">
+                                        <div>
+                                            <h3>پلن پایه</h3>
+                                            <span class="component-status status-stable">پایدار</span>
+                                        </div>
+                                        <span class="component-category">فایوم</span>
+                                    </div>
+                                    <ul style="list-style:none;padding:0;margin:0 0 1rem 0;text-align:center;">
+                                        <li>۳۵ گیگ</li>
+                                        <li>یک ماه</li>
+                                    </ul>
+                                    <div class="component-actions">
+                                        <button class="btn btn-secondary">۵۸ هزار تومان</button>
+                                    </div>
+                                </div> -->
+                                <div style="text-align:center;margin-bottom:2rem;">
+                                    <img src="assets/images/plan.png" alt="پلن‌های سرویس"
+                                        style="max-width:100%;height:auto;" />
+                                </div>
+                            </div>
+                           
+                        </div>
+                        <div id="page-fivem" class="hidden">
+                            <div style="text-align:center;margin-bottom:2rem;">
+                                <img src="assets/images/plan2.png" alt="پلن‌های سرویس"
+                                    style="max-width:100%;height:auto;" />
+                            </div>
+                        </div>
+
+                        <!-- Other pages would go here... -->
+                        <div id="page-quick-start" class="hidden">
+                            <h1>نصب Proxifier</h1>
+                            <p>در عرض چند دقیقه با این راهنمای نصب Proxifier آماده شوید.</p>
+
+                            <div class="content-section">
+                                <h2>۱. ایمپورت کردن فریمورک</h2>
+                                <div class="code-block">
+                                    <pre><code>import { Framework, Button, Input } from '@framework/core';
+import '@framework/core/styles.css';</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="content-section">
+                                <h2>۲. ایجاد اولین کامپوننت</h2>
+                                <div class="code-block">
+                                    <pre><code>function App() {
+  return (
+    &lt;Framework&gt;
+      &lt;div className="p-6"&gt;
+        &lt;h1&gt;Welcome to Framework&lt;/h1&gt;
+        &lt;Button variant="primary"&gt;
+          Get Started
+        &lt;/Button&gt;
+      &lt;/div&gt;
+    &lt;/Framework&gt;
+  );
+}</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-success">
+                                <h3>🎉 شما آماده هستید!</h3>
+                                <p>فریمورک شما حالا راه‌اندازی شده و آماده استفاده است. کتابخانه سرویس ها را کاوش
+                                    کنید تا رابط‌های شگفت‌انگیز بسازید.</p>
+                            </div>
+                        </div>
+
+                        <!-- Add other page content as needed -->
+                    </div>
+                    <div id="search-results" class="hidden"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Navigation functionality
+        const pages = {
+            'home': 'خانه',
+            'installation': 'نصب',
+            'quick-start': 'نصب Proxifier',
+            'configuration': 'پیکربندی',
+            'components': 'سرویس ها',
+            'fivem': 'استایل‌دهی',
+            'deployment': 'استقرار',
+            'hooks': 'هوک‌ها',
+            'utilities': 'ابزارها',
+            'types': 'انواع'
+        };
+
+        const pageHierarchy = {
+            'home': ['خانه'],
+            'installation': ['آموزش نصب', 'نصب'],
+            'quick-start': ['آموزش نصب', 'نصب Proxifier'],
+            'configuration': ['آموزش نصب', 'پیکربندی'],
+            'components': ['راهنماها', 'سرویس ها'],
+            'fivem': ['راهنماها', 'استایل‌دهی'],
+            'deployment': ['راهنماها', 'استقرار'],
+            'hooks': ['مرجع API', 'هوک‌ها'],
+            'utilities': ['مرجع API', 'ابزارها'],
+            'types': ['مرجع API', 'انواع']
+        };
+
+        let currentPage = 'home';
+
+        function navigateTo(page, linkElement) {
+            // Hide all pages
+            document.querySelectorAll('[id^="page-"]').forEach(el => {
+                el.classList.add('hidden');
+            });
+
+            // Show target page
+            const targetPage = document.getElementById(`page-${page}`);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+            }
+
+            // Update active nav link
+            document.querySelectorAll('.nav-link').forEach(el => {
+                el.classList.remove('active');
+            });
+            if (linkElement) {
+                linkElement.classList.add('active');
+            }
+
+            // Update breadcrumb
+            updateBreadcrumb(page);
+
+            // Update current page
+            currentPage = page;
+
+            // Close sidebar on mobile
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        }
+
+        function updateBreadcrumb(page) {
+            const breadcrumb = document.getElementById('breadcrumb');
+            const hierarchy = pageHierarchy[page] || ['خانه'];
+
+            breadcrumb.innerHTML = `
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                </svg>
+                ${hierarchy.slice().reverse().map((item, index) => `
+                    ${index > 0 ? '<svg class="breadcrumb-separator" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"></polyline></svg>' : ''}
+                    <span class="${index === 0 ? 'breadcrumb-current' : ''}">${item}</span>
+                `).join('')}
+            `;
+        }
+
+        function toggleNavSection(sectionId) {
+            const children = document.getElementById(`children-${sectionId}`);
+            const chevron = document.getElementById(`chevron-${sectionId}`);
+
+            if (children.classList.contains('expanded')) {
+                children.classList.remove('expanded');
+                chevron.classList.remove('expanded');
+            } else {
+                children.classList.add('expanded');
+                chevron.classList.add('expanded');
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Could add a toast notification here
+                console.log('Copied to clipboard:', text);
+            });
+        }
+
+        function filterComponents(category) {
+            const cards = document.querySelectorAll('.component-card');
+            const buttons = document.querySelectorAll('.filter-btn');
+
+            // Update active button
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Show/hide cards
+            cards.forEach(card => {
+                if (category === 'همه' || card.dataset.category === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.querySelector('.menu-toggle');
+
+            if (window.innerWidth <= 768 &&
+                sidebar.classList.contains('open') &&
+                !sidebar.contains(e.target) &&
+                !menuToggle.contains(e.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // جست‌وجو در مستندات
+        const searchInput = document.querySelector('.search-box input');
+        const searchResults = document.getElementById('search-results');
+        const allPages = Array.from(document.querySelectorAll('[id^="page-"]'));
+
+        searchInput.addEventListener('input', function () {
+            const query = this.value.trim();
+            if (!query) {
+                searchResults.classList.add('hidden');
+                allPages.forEach(page => page.classList.add('hidden'));
+                document.getElementById(`page-${currentPage}`).classList.remove('hidden');
+                return;
+            }
+
+            // جست‌وجو در عنوان و متن صفحات
+            let results = [];
+            allPages.forEach(page => {
+                const title = page.querySelector('h1') ? page.querySelector('h1').innerText : '';
+                const text = page.innerText;
+                if (title.includes(query) || text.includes(query)) {
+                    results.push({
+                        id: page.id,
+                        title,
+                        snippet: text.substring(0, 200)
+                    });
+                }
+            });
+
+            // نمایش نتایج
+            if (results.length > 0) {
+                searchResults.innerHTML = results.map(r =>
+                    `<div class="card" style="margin-bottom:1rem;cursor:pointer" onclick="showSearchedPage('${r.id}')">
+                        <h3>${r.title}</h3>
+                        <p>${r.snippet}...</p>
+                    </div>`
+                ).join('');
+            } else {
+                searchResults.innerHTML = '<div class="alert alert-info">نتیجه‌ای یافت نشد.</div>';
+            }
+            searchResults.classList.remove('hidden');
+            allPages.forEach(page => page.classList.add('hidden'));
+        });
+
+        // نمایش صفحه انتخاب‌شده از نتایج جست‌وجو
+        function showSearchedPage(pageId) {
+            searchResults.classList.add('hidden');
+            allPages.forEach(page => page.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+            searchInput.value = '';
+        }
+
+        // Add click handlers for Telegram and Discord icon-buttons in the header
+        window.addEventListener('DOMContentLoaded', function () {
+            // Find all icon-buttons in the header
+            const headerRight = document.querySelector('.header-right');
+            if (headerRight) {
+                const iconButtons = headerRight.querySelectorAll('.icon-button');
+                // Assuming the first is menu, the second is GitHub, the third is Telegram, the fourth is Discord
+                // Adjust the index if the order changes
+                if (iconButtons.length >= 3) {
+                    // Telegram button (third icon-button)
+                    iconButtons[1].addEventListener('click', function () {
+                        window.open('https://t.me/dinoservice', '_blank', 'noopener');
+                    });
+                    // Discord button (fourth icon-button)
+                    iconButtons[2].addEventListener('click', function () {
+                        window.open('https://discord.gg/h5M9vBNaTs', '_blank', 'noopener');
+                    });
+                }
+            }
+            // نمایش صفحه بر اساس hash
+            const hash = window.location.hash.replace('#', '');
+            if (hash && document.getElementById(`page-${hash}`)) {
+                navigateTo(hash);
+            }
+        });
+    </script>
+</body>
+
+</html>
