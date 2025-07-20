@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dino Service</title>
     <link rel="stylesheet" href="globals.css">
+    <link href="https://cdn.jsdelivr.net/npm/@vazirmatn/font-face@33.003.0/Vazirmatn-font-face.css" rel="stylesheet" />
     <style>
         * {
             margin: 0;
@@ -35,7 +36,7 @@
         }
 
         body {
-            font-family: 'AbarMid', 'AbarMid-Regular', 'AbarHigh', 'AbarLow', 'Segoe UI', Tahoma, Arial, sans-serif;
+            font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
             background-color: var(--color-background);
             color: var(--color-foreground);
             font-size: 14px;
@@ -892,6 +893,14 @@
                                         <h4>سرویس ها</h4>
                                         <p>کتابخانه جامع سرویس های قابل استفاده مجدد ما را کشف کنید.</p>
                                     </div>
+                                    <div class="card" onclick="navigateTo('hooks')">
+                                        <h4>مرجع API</h4>
+                                        <p>مستندات کامل API با نمونه‌ها و الگوهای استفاده.</p>
+                                    </div>
+                                    <div class="card" onclick="navigateTo('deployment')">
+                                        <h4>استقرار</h4>
+                                        <p>راهنمای گام به گام برای استقرار برنامه در محیط تولید.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1019,9 +1028,9 @@ import '@framework/core/styles.css';</code></pre>
             'installation': ['آموزش نصب', 'نصب'],
             'quick-start': ['آموزش نصب', 'نصب Proxifier'],
             'configuration': ['آموزش نصب', 'پیکربندی'],
-            'components': ['سرویس ها', 'سرویس ها'],
-            'fivem': ['سرویس ها', 'استایل‌دهی'],
-            'deployment': ['سرویس ها', 'استقرار'],
+            'components': ['راهنماها', 'سرویس ها'],
+            'fivem': ['راهنماها', 'استایل‌دهی'],
+            'deployment': ['راهنماها', 'استقرار'],
             'hooks': ['مرجع API', 'هوک‌ها'],
             'utilities': ['مرجع API', 'ابزارها'],
             'types': ['مرجع API', 'انواع']
